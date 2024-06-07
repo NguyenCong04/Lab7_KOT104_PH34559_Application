@@ -1,10 +1,13 @@
 package com.congntph34559.fpoly.lab7_kot104_ph34559_application.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -16,10 +19,14 @@ import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,7 +35,10 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.SpanStyle
@@ -41,9 +51,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
-import com.congntph34559.fpoly.lab7_kot104_ph34559_application.model.MainViewModel
+import com.congntph34559.fpoly.lab7_kot104_ph34559_application.model.MovieViewModel
 import com.congntph34559.fpoly.lab7_kot104_ph34559_application.model.Movie
 import com.congntph34559.fpoly.lab7_kot104_ph34559_application.model.ROUTE_SCREEN
 
@@ -54,15 +63,19 @@ enum class ListType {
 
 @Composable
 fun Movie(value: List<Movie>, navController: NavHostController) {
-    val mainViewModel: MainViewModel = viewModel()
+    val mainViewModel: MovieViewModel = viewModel()
     val moviesState =
         mainViewModel.movies.observeAsState(initial = emptyList())
-    MovieScreen(value, navController = navController)
+//    MovieScreen(value, navController = navController)
 }
 
 @Composable
-fun MovieScreen(value: List<Movie>, navController: NavController) {
+fun MovieScreen(navController: NavController) {
     var listType by remember { mutableStateOf(ListType.ROW) }
+    val movieViewModel: MovieViewModel = viewModel()
+    val moviesState =
+        movieViewModel.movies.observeAsState(initial = emptyList())
+    val value = moviesState.value
     Column {
         Row(
             modifier = Modifier
@@ -103,7 +116,7 @@ fun MovieScreen(value: List<Movie>, navController: NavController) {
             Spacer(modifier = Modifier.width(8.dp))
             Button(
                 onClick = {
-                          navController.navigate(ROUTE_SCREEN.screen1.name)
+                    navController.navigate(ROUTE_SCREEN.screen1.name)
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Black
@@ -119,7 +132,22 @@ fun MovieScreen(value: List<Movie>, navController: NavController) {
             ListType.GRID -> MovieGrid(value)
         }
     }
-
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.BottomEnd
+    ) {
+        FloatingActionButton(
+            onClick = { /*TODO*/ },
+            modifier = Modifier.background(
+                color = Color.Black
+            )
+        ) {
+            Icon(imageVector = Icons.Default.Add,
+                contentDescription = null,
+                tint = Color(0xffffffff)
+            )
+        }
+    }
 }
 
 @Composable
@@ -163,7 +191,8 @@ fun MovieColumnItem(movie: Movie, listType: ListType) {
         ),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
                 model = movie.posterUrl,
@@ -172,6 +201,12 @@ fun MovieColumnItem(movie: Movie, listType: ListType) {
                 modifier = Modifier
                     .then(getItemSizeModifier(listType))
                     .wrapContentHeight()
+                    .padding(start = 10.dp)
+                    .clip(
+                        RoundedCornerShape(
+                            8.dp
+                        )
+                    )
             )
             Column(
                 modifier = Modifier.padding(8.dp)
@@ -186,11 +221,11 @@ fun MovieColumnItem(movie: Movie, listType: ListType) {
                 )
                 BoldValueText(
                     label = "Thời lượng: ", value =
-                    "${movie.time}'"
+                    "${movie.duration}'"
                 )
                 BoldValueText(
                     label = "Khởi chiếu: ", value =
-                    movie.date
+                    movie.releaseDate
                 )
                 BoldValueText(label = "Thể loại: ", value = movie.genre)
                 Text(
@@ -203,7 +238,7 @@ fun MovieColumnItem(movie: Movie, listType: ListType) {
                     )
                 )
                 Text(
-                    text = movie.shortDesc,
+                    text = movie.shotDescription,
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 5,
 
@@ -226,7 +261,10 @@ fun MovieGrid(movies: List<Movie>) {
         contentPadding = PaddingValues(8.dp)
     ) {
         items(movies.size) { index ->
-            MovieItemExerciseTwo(movie = movies[index], listType = ListType.GRID)
+            MovieItemExerciseTwo(
+                movie = movies[index],
+                listType = ListType.GRID
+            )
         }
     }
 }
@@ -265,11 +303,11 @@ fun MovieItemExerciseTwo(movie: Movie, listType: ListType) {
                 )
                 BoldValueText(
                     label = "Thời lượng: ", value =
-                    "${movie.time}'"
+                    "${movie.duration}'"
                 )
                 BoldValueText(
                     label = "Khởi chiếu: ", value =
-                    movie.date
+                    movie.releaseDate
                 )
             }
         }
